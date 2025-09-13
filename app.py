@@ -1,8 +1,7 @@
 import pygame
-from error_window import ErrorWindow
-from level import Level
-from levels import levels
-from player import Player
+from scene import Scene
+import random
+import time
 
 
 def print_virt_surf(screen, virt_surf):
@@ -29,14 +28,10 @@ virt_surf = pygame.Surface((1600, 900))
 
 clock = pygame.time.Clock()
 
-error = ErrorWindow((500, 200), (800, 500))
-level = Level(levels[0])
-background = pygame.image.load('./assets/background.jpg')
-background = pygame.transform.scale(background, (1600, 900))
+scene = Scene()
 
 running = True
 while running:
-    virt_surf.blit(background, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -44,10 +39,13 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
-    error.render(virt_surf)
+    scene.update()
+    scene.render(virt_surf)
+
     print_virt_surf(screen, virt_surf)
 
     pygame.display.flip()
     clock.tick(fps)
+    print("FPS:", int(clock.get_fps()))
 
 pygame.quit()

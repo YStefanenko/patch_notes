@@ -2,15 +2,15 @@ import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, position):
         super().__init__()
         self.image = pygame.Surface((100, 100))
         self.image.fill('blue')
-        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect = self.image.get_rect(topleft=position)
 
         self.vx = 0
         self.vy = 0
-        self.a = 3
+        self.a = 5
         self.jump_power = -64
         self.on_ground = False
 
@@ -20,12 +20,12 @@ class Player(pygame.sprite.Sprite):
         # Horizontal movement
         if keys[pygame.K_a]:
             self.vx -= self.a
-            if self.vx < -20:
-                self.vx = -20
+            if self.vx < -30:
+                self.vx = -30
         if keys[pygame.K_d]:
             self.vx += self.a
-            if self.vx > 20:
-                self.vx = 20
+            if self.vx > 30:
+                self.vx = 30
         self.vx = self.vx * 0.8
 
         # Apply gravity

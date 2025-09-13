@@ -4,26 +4,27 @@ from player import Player
 
 class Level:
     def __init__(self, data):
-        self.player = Player(100, 100)
+        self.player = Player(data['position'])
 
         tile_size = 100
-        self.tiles = []
-        row_index = 0
-        for row in data:
-            col_index = 0
-            for tile in row:
-                if tile == 1:
-                    rect = pygame.Rect(col_index * tile_size, row_index * tile_size, tile_size, tile_size)
-                    self.tiles.append(rect)
-                col_index += 1
-            row_index += 1
+        self.platforms = []
+        for platform in data['platforms']:
+            rect = pygame.Rect(platform[0][0], platform[0][1], platform[1][0], platform[1][1])
+            self.platforms.append(rect)
+
+        self.surface = pygame.Surface((1600, 900))
+        self.surface.convert_alpha(self.surface)
+
+    def update(self):
+        self.player.update(self.platforms)
+
 
     def render(self):
-        self.player.update(self.tiles)
-        surface = pygame.Surface((1600, 900))
+        self.surface.fill((215, 231, 211))
 
-        for tile in self.tiles:
-            pygame.draw.rect(surface, (0, 255, 0), tile)
-        self.player.render(surface)
+        for tile in self.platforms:
+            pygame.draw.rect(self.surface, (147, 117, 136), tile)
 
-        return surface
+        self.player.render(self.surface)
+
+        return self.surface
