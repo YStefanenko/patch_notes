@@ -8,13 +8,16 @@ from error import Error
 
 class Scene:
     def __init__(self):
-        self.stage = 'intro'
-        self.stage_progression = ['intro', 'desktop1', 'recycle_bin', 'desktop2', 'important_docs', 'desktop3', 'browser', 'desktop4', 'my_computer', 'system']
+        self.stage = 'desktop2'
+        self.stage_progression = ['intro', 'desktop1', 'desktop2', 'recycle_bin', 'desktop3', 'important_docs', 'desktop4', 'browser', 'desktop5', 'my_computer', 'system']
         self.frame = 0
 
         self.stage_text = {
             'desktop1': [
-                'Oh, no! A virus has attacked this PC'
+                'Oh no! A virus just attacked the PC...',
+                'We need to fix this before it spreads!',
+                'Use WAD and SPACE to move.',
+                "Click to shoot. Don't touch the virus!",
             ]
         }
         self.stage_font = pygame.font.SysFont("Comic Sans MS", 48)
@@ -52,12 +55,9 @@ class Scene:
         self.time = font.render(current_time, True, (40, 40, 40))
         self.time_rect = self.time.get_rect(topleft=(1450, 832))
 
-        self.bubble1 = pygame.image.load('./assets/speech_bubble_1.png').convert_alpha()
-        self.bubble1 = pygame.transform.scale(self.bubble1, (111, 108))
-        self.bubble2 = pygame.image.load('./assets/speech_bubble_2.png').convert_alpha()
-        self.bubble2 = pygame.transform.scale(self.bubble2, (158, 63))
-        self.bubble3 = pygame.image.load('./assets/speech_bubble_3.png').convert_alpha()
-        self.bubble3 = pygame.transform.scale(self.bubble3, (17, 63))
+        self.bubble = pygame.image.load('./assets/speech_bubble.png').convert_alpha()
+        self.bubble = pygame.transform.scale(self.bubble, (900, 150))
+
 
         self.bin_background = pygame.image.load('./assets/recycle bin.png').convert()
         self.bin_background = pygame.transform.scale(self.bin_background, (1600, 900))
@@ -72,31 +72,47 @@ class Scene:
         self.computer_background = pygame.transform.scale(self.computer_background, (1600, 900))
 
 
-    def update(self):
+    def update(self, mouse):
         self.frame += 1
 
         if self.stage == 'intro':
             if self.frame > 300:
-                self.frame = 0
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
 
-        elif self.stage[:-1] == 'desktop':
-            if self.frame < 150:
-                self.main_level.update()
-            elif self.frame == 150:
-                self.errors.append(Error((200, 200), (806, 498), 'File Not Found Error', levels['first']))
-            elif 150 < self.frame < 350:
-                self.errors[0].update()
-            elif self.frame == 350:
-                self.errors = []
+        elif self.stage == 'desktop1':
+            if self.frame < 400:
+                self.main_level.update(mouse)
+            elif self.frame == 400:
+                self.errors.append(Error((400, 100), (806, 498), 'File Not Found Error', levels['first']))
+            elif self.frame > 430:
+                self.errors[0].update(mouse)
+                if self.errors[0].complete:
+                    del self.errors[0]
 
-            if self.frame > 400:
+            if self.frame > 400 and not self.errors:
+                self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
+
+        elif self.stage == 'desktop2':
+            if self.errors:
+                for error in self.errors:
+                    error.update(mouse)
+                    if error.complete:
+                        self.errors.remove(error)
+            else:
+                self.main_level.update(mouse)
+
+            if self.frame == 1:
+                self.errors.append(Error((400, 100), (806, 498), 'File Not Found Error', levels['first']))
+
+            if self.frame > 1 and not self.errors:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
         elif self.stage == 'recycle_bin':
             for error in self.errors:
-                error.update()
+                error.update(mouse)
 
             if self.frame == 20:
                 self.errors.append(Error((100, 100), (806, 498), "No Such File", levels['bin1']))
@@ -110,7 +126,7 @@ class Scene:
 
         elif self.stage == 'important_docs':
             for error in self.errors:
-                error.update()
+                error.update(mouse)
 
             if self.frame == 20:
                 self.errors.append(Error((200, 200), (806, 498), "No Such File", levels['bin1']))
@@ -153,7 +169,7 @@ class Scene:
 
     def render(self, surface):
         if self.stage == 'intro':
-            if self.frame < 150 or (random.random() > 0.5 and self.frame < 230):
+            if self.frame < 150 or (int(self.frame / 7) % 2 and self.frame < 230):
                 surface.blit(self.background, (0, 0))
                 surface.blit(self.toolbar, (0, 832))
                 surface.blit(self.computer, (25, 25))
@@ -162,7 +178,7 @@ class Scene:
                 surface.blit(self.docs, (30, 490))
                 surface.blit(self.time, self.time_rect)
 
-                if int(self.frame / 30) % 2 and self.frame < 200:
+                if int(self.frame / 30) % 2 and self.frame < 150:
                     surface.blit(self.virus, (500, 50))
                 surface.blit(self.virus_text, self.virus_text_rect)
 
@@ -177,21 +193,21 @@ class Scene:
             surface.blit(self.browser, (40, 360))
             surface.blit(self.docs, (30, 490))
             surface.blit(self.time, self.time_rect)
-            if not self.errors:
+            if self.errors:
+                for error in self.errors:
+                    error.render(surface)
+            else:
                 self.main_level.player.render(surface)
 
+
         if self.stage == 'desktop1':
-            if self.frame > 30 and not self.errors:
-                text = self.stage_font.render('Oh, no! A virus has attacked this PC', True, (40, 40, 40))
-                rect = self.time.get_rect(topleft=(self.main_level.player.rect.topleft[0] + 20, self.main_level.player.rect.topleft[1] - 45))
-                surface.blit(self.bubble1, (self.main_level.player.rect.topleft[0] + 30, self.main_level.player.rect.topleft[1] - 45))
-                surface.blit(self.bubble2, (self.main_level.player.rect.topleft[0] + 140, self.main_level.player.rect.topleft[1] - 45))
-                surface.blit(self.bubble3, (self.main_level.player.rect.topleft[0] + 290, self.main_level.player.rect.topleft[1] - 45))
+            if 30 < self.frame < 390:
+                text = self.stage_font.render(self.stage_text['desktop1'][int((self.frame - 30) / 90)], True, (0, 0, 0))
+                rect = self.time.get_rect(topleft=(self.main_level.player.rect.topleft[0] + 40, self.main_level.player.rect.topleft[1] - 110))
+
+                surface.blit(self.bubble, (self.main_level.player.rect.topleft[0] + 20, self.main_level.player.rect.topleft[1] - 120))
 
                 surface.blit(text, rect)
-
-            if self.errors:
-                self.errors[0].render(surface)
 
         elif self.stage == 'recycle_bin':
             surface.blit(self.bin_background, (0, 0))

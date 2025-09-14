@@ -5,7 +5,7 @@ from levels import levels
 
 class Error:
     def __init__(self, position, size, title, data):
-        self.background = pygame.image.load('./assets/popup window 02.png').convert_alpha()
+        self.background = pygame.image.load('./assets/popup_window_02.png').convert_alpha()
         self.background = pygame.transform.scale(self.background, (806, 498))
 
         font = pygame.font.SysFont(None, 64)
@@ -20,9 +20,17 @@ class Error:
         self.level = Level(data)
         self.level_rect = pygame.Rect((self.position[0] + 10, self.position[1] + 65), (size[0] - 13, size[1] - 75))
 
+        self.complete = False
 
-    def update(self):
-        self.level.update()
+
+    def update(self, mouse):
+        size = self.level_rect.size
+        mouse = ((mouse[0] - self.position[0] - 10) / size[0] * 1600, (mouse[1] - self.position[1] - 65) / size[1] * 900)
+
+        self.level.update(mouse)
+
+        if self.level.complete:
+            self.complete = True
 
 
     def render(self, surface):
