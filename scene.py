@@ -4,12 +4,13 @@ import random
 from levels import levels
 from level import Level
 from error import Error
+from sound import sound
 
 
 class Scene:
     def __init__(self):
-        self.stage = 'desktop2'
-        self.stage_progression = ['intro', 'desktop1', 'desktop2', 'recycle_bin', 'desktop3', 'important_docs', 'desktop4', 'browser', 'desktop5', 'my_computer', 'system']
+        self.stage = 'intro'
+        self.stage_progression = ['intro', 'desktop1', 'desktop2', 'recycle_bin', 'desktop3', 'important_docs', 'desktop4', 'browser', 'desktop5', 'my_computer', 'system', 'win']
         self.frame = 0
 
         self.stage_text = {
@@ -18,7 +19,38 @@ class Scene:
                 'We need to fix this before it spreads!',
                 'Use WAD and SPACE to move. Click...',
                 "...or R to shoot. Don't touch the virus!",
+            ],
+            'desktop2': [
+                "Let’s check the Recycle Bin. ",
+                "Viruses love to hide there.",
+                "Shoot the bin to continue",
+            ],
+            'desktop3': [
+                "Huh, so the source wasn’t in the bin.",
+                "Next stop… the Important Documents folder.",
+                "If the virus got in there, we’re in real trouble.",
+                "Shoot documents to continue",
+
+            ],
+            'desktop4': [
+                "Documents folder secured.",
+                "But I don’t think it ends there. ",
+                "If I were a virus, I’d spread further...",
+                "...let’s look into the Browser.",
+                "Shoot the browser to continue",
+
+            ],
+            'desktop5': [
+                "Browser’s cleaned up. Good. ",
+                "That means the infection is deeper in the system. ",
+                "Time to open up ‘My Computer’ and trace its roots.",
+                "Shoot my computer to continue",
+
+            ],
+            'win': [
+                "Nice, the computer is now clear!"
             ]
+
         }
         self.stage_font = pygame.font.SysFont("Comic Sans MS", 48)
 
@@ -56,8 +88,8 @@ class Scene:
         self.time = font.render(current_time, True, (40, 40, 40))
         self.time_rect = self.time.get_rect(topleft=(1450, 832))
 
-        self.bubble = pygame.image.load('./assets/speech_bubble.png').convert_alpha()
-        self.bubble = pygame.transform.scale(self.bubble, (900, 150))
+        self.original_bubble = pygame.image.load('./assets/speech_bubble.png').convert_alpha()
+        self.original_bubble = pygame.transform.scale(self.original_bubble, (900, 150))
 
 
         self.bin_background = pygame.image.load('./assets/recycle_bin_background.png').convert()
@@ -79,6 +111,7 @@ class Scene:
                 error.update(mouse)
                 if error.level.complete:
                     self.errors.remove(error)
+
                 if error.level.restart_countdown:
                     for error2 in self.errors:
                         if not error2.level.restart_countdown:
@@ -86,6 +119,8 @@ class Scene:
 
 
         if self.stage == 'intro':
+            if self.frame == 0:
+                sound.set_music('menu')
             if self.frame > 300:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
@@ -102,7 +137,10 @@ class Scene:
 
         if self.stage == 'desktop2':
             if self.frame == 0:
+                sound.set_music('menu')
                 self.main_level = Level(levels['main'])
+                self.main_level.add_static_target((-100, -100))
+            elif self.frame == len(self.stage_text[self.stage]) * 90 + 25:
                 self.main_level.add_static_target((70, 330))
 
             self.main_level.update(mouse)
@@ -111,57 +149,115 @@ class Scene:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
-        elif self.stage == 'recycle_bin':
-            if self.frame == 20:
-                self.errors.append(Error((100, 100), (806, 498), "No Such File", levels['bin1']))
-            elif self.frame == 100:
-                self.errors.append(Error((700, 400), (806, 498), 'File Absent', levels['bin2']))
+        if self.stage == 'recycle_bin':
+            if self.frame == 0:
+                sound.set_music('level')
+            if self.frame == 30:
+                self.errors.append(Error((100, 100), (806, 498), "FileNotFoundError", levels['bin1']))
 
-            if self.frame > 400:
+            if self.frame > 30 and not self.errors:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
+        if self.stage == 'desktop3':
+            if self.frame == 0:
+                sound.set_music('menu')
+                self.main_level = Level(levels['main'])
+                self.main_level.add_static_target((-100, -100))
+            elif self.frame == len(self.stage_text[self.stage]) * 90 + 25:
+                self.main_level.add_static_target((70, 592))
 
-        elif self.stage == 'important_docs':
-            for error in self.errors:
-                error.update(mouse)
+            self.main_level.update(mouse)
 
-            if self.frame == 20:
-                self.errors.append(Error((200, 200), (806, 498), "No Such File", levels['bin1']))
-            elif self.frame == 100:
-                self.errors.append(Error((400, 300), (806, 498), 'File Absent', levels['bin2']))
-
-            if self.frame > 400:
+            if self.frame > 1 and self.main_level.complete_countdown:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
+        if self.stage == 'important_docs':
+            if self.frame == 0:
+                sound.set_music('level')
+            if self.frame == 30:
+                self.errors.append(Error((200, 200), (806, 498), "AccessDeniedError", levels['docs1']))
+            elif 30 < self.frame < 1000000:
+                if not self.errors:
+                    self.errors.append(Error((400, 300), (806, 498), 'CorruptFileError', levels['docs2']))
+                    self.frame = 1000000
 
-        elif self.stage == 'browser':
-            for error in self.errors:
-                error.update()
-
-            if self.frame == 20:
-                self.errors.append(Error((200, 200), (806, 498), "No Such File", levels['bin1']))
-            elif self.frame == 100:
-                self.errors.append(Error((400, 300), (806, 498), 'File Absent', levels['bin2']))
-
-            if self.frame > 400:
+            if self.frame > 1000000 and not self.errors:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
+        if self.stage == 'desktop4':
+            if self.frame == 0:
+                sound.set_music('menu')
+                self.main_level = Level(levels['main'])
+                self.main_level.add_static_target((-100, -100))
+            elif self.frame == len(self.stage_text[self.stage]) * 90 + 25:
+                self.main_level.add_static_target((70, 462))
 
-        elif self.stage == 'my_computer':
-            for error in self.errors:
-                error.update()
+            self.main_level.update(mouse)
 
-            if self.frame == 20:
-                self.errors.append(Error((200, 200), (806, 498), "No Such File", levels['bin1']))
-            elif self.frame == 100:
-                self.errors.append(Error((400, 300), (806, 498), 'File Absent', levels['bin2']))
-
-            if self.frame > 400:
+            if self.frame > 1 and self.main_level.complete_countdown:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
+
+        if self.stage == 'browser':
+            if self.frame == 0:
+                sound.set_music('level')
+            if self.frame == 30:
+                self.errors.append(Error((100, 100), (806, 498), "ProxyHijackError", levels['brow1']))
+            elif self.frame == 90:
+                self.errors.append(Error((600, 300), (806, 498), 'CookieOverflowError', levels['brow2']))
+
+            if self.frame > 100 and not self.errors:
+                self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
+
+        if self.stage == 'desktop5':
+            if self.frame == 0:
+                sound.set_music('menu')
+                self.main_level = Level(levels['main'])
+                self.main_level.add_static_target((-100, -100))
+            elif self.frame == len(self.stage_text[self.stage]) * 90 + 25:
+                self.main_level.add_static_target((70, 140))
+
+            self.main_level.update(mouse)
+
+            if self.frame > 1 and self.main_level.complete_countdown:
+                self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
+
+        if self.stage == 'my_computer':
+            if self.frame == 0:
+                sound.set_music('boss')
+            if self.frame == 30:
+                self.errors.append(Error((200, 200), (806, 498), "KernelFaultException", levels['comp1']))
+            elif self.frame == 100:
+                self.errors.append(Error((600, 100), (806, 498), 'DriverCrashError', levels['comp2']))
+            elif 100 < self.frame < 1000000:
+                if len(self.errors) == 0:
+                    self.errors.append(Error((300, 350), (806, 498), 'RegistryCorruptionError', levels['comp3']))
+                    self.frame = 1000000
+
+            if self.frame > 1000000 and not self.errors:
+                self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
+
+        if self.stage == 'system':
+            if self.frame == 0:
+                self.main_level = Level(levels['final'])
+
+            self.main_level.update(mouse)
+
+            if self.frame > 1 and self.main_level.complete_countdown:
+                self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
+                self.frame = 0
+
+        if self.stage == 'win':
+            if self.frame == 0:
+                self.main_level = Level(levels['main'])
+
+            self.main_level.update(mouse)
 
         self.frame += 1
 
@@ -200,16 +296,17 @@ class Scene:
             else:
                 surface.blit(self.main_level.render(), (0, -66))
 
+            if 30 < self.frame < len(self.stage_text[self.stage]) * 90 + 30:
+                text = self.stage_font.render(self.stage_text[self.stage][int((self.frame - 30) / 90)][:min(self.frame - 30 - int((self.frame - 30) / 90) * 90, len(self.stage_text[self.stage][int((self.frame - 30) / 90)]))], True, (0, 0, 0))
+                rect = text.get_rect(topleft=(self.main_level.player.rect.topleft[0] + 40, self.main_level.player.rect.topleft[1] - 110))
 
-        if self.stage == 'desktop1':
-            if 30 < self.frame < 390:
-                text = self.stage_font.render(self.stage_text['desktop1'][int((self.frame - 30) / 90)], True, (0, 0, 0))
-                rect = self.time.get_rect(topleft=(self.main_level.player.rect.topleft[0] + 40, self.main_level.player.rect.topleft[1] - 110))
+                bubble_size = max(rect.width, 600) + 30
+                print(rect.width)
+                bubble = pygame.transform.scale(self.original_bubble, (bubble_size, 150))
 
-                surface.blit(self.bubble, (self.main_level.player.rect.topleft[0] + 20, self.main_level.player.rect.topleft[1] - 120))
+                surface.blit(bubble, (self.main_level.player.rect.topleft[0] + 20, self.main_level.player.rect.topleft[1] - 120))
 
                 surface.blit(text, rect)
-
 
 
         elif self.stage == 'recycle_bin':
@@ -221,6 +318,45 @@ class Scene:
         elif self.stage == 'my_computer':
             surface.blit(self.computer_background, (0, 0))
 
+        elif self.stage == 'system':
+            surface.blit(self.background, (0, 0))
+            surface.blit(self.toolbar, (0, 832))
+            surface.blit(self.computer, (25, 25))
+            surface.blit(self.bin, (30, 178))
+            surface.blit(self.browser, (40, 360))
+            surface.blit(self.docs, (30, 490))
+            surface.blit(self.time, self.time_rect)
+            if self.errors:
+                for error in self.errors:
+                    error.render(surface)
+            else:
+                surface.blit(self.main_level.render(), (0, -66))
+
+        elif self.stage == 'win':
+            surface.blit(self.background, (0, 0))
+            surface.blit(self.toolbar, (0, 832))
+            surface.blit(self.computer, (25, 25))
+            surface.blit(self.bin, (30, 178))
+            surface.blit(self.browser, (40, 360))
+            surface.blit(self.docs, (30, 490))
+            surface.blit(self.time, self.time_rect)
+            if self.errors:
+                for error in self.errors:
+                    error.render(surface)
+            else:
+                surface.blit(self.main_level.render(), (0, -66))
+
+            if 30 < self.frame < len(self.stage_text[self.stage]) * 90 + 30:
+                text = self.stage_font.render(self.stage_text[self.stage][int((self.frame - 30) / 90)][:min(self.frame - 30 - int((self.frame - 30) / 90) * 90, len(self.stage_text[self.stage][int((self.frame - 30) / 90)]))], True, (0, 0, 0))
+                rect = text.get_rect(topleft=(self.main_level.player.rect.topleft[0] + 40, self.main_level.player.rect.topleft[1] - 110))
+
+                bubble_size = max(rect.width, 600) + 30
+                print(rect.width)
+                bubble = pygame.transform.scale(self.original_bubble, (bubble_size, 150))
+
+                surface.blit(bubble, (self.main_level.player.rect.topleft[0] + 20, self.main_level.player.rect.topleft[1] - 120))
+
+                surface.blit(text, rect)
 
         for error in self.errors:
             error.render(surface)

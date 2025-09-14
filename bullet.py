@@ -1,5 +1,6 @@
 import pygame
 import math
+from sound import sound
 
 
 class Bullet:
@@ -11,25 +12,34 @@ class Bullet:
         self.image = pygame.transform.rotate(self.image, -angle)
 
         self.rect = self.image.get_rect()
+        self.visual_rect = self.image.get_rect()
 
         self.rect.center = position
-        self.rect.size = (self.rect.size[0] * 0.8, self.rect.size[1] * 0.8)
-        self.speed = 20
+        self.rect.size = (self.rect.size[0] * 0.5, self.rect.size[1] * 0.5)
+
+        self.visual_rect.center = position
+
+        self.speed = 30
 
         self.static = False
+        sound.play_sound('gun')
 
     def update(self, viruses, tiles):
         if self.static:
             return
         self.rect.center = (self.rect.center[0] + self.direction[0] * self.speed, self.rect.center[1] + self.direction[1] * self.speed)
-        self.speed = self.speed * 1.03
+        self.visual_rect.center = self.rect.center
+        self.speed = self.speed
 
 
         for virus in viruses:
-            if self.rect.colliderect(virus):
-                virus.dead = True
-                self.static = True
-                return
+            if not virus.dead:
+                if self.rect.colliderect(virus):
+                    virus.dead = True
+                    sound.play_sound('deathv')
+
+                    self.static = True
+                    return
 
         for tile in tiles:
             if self.rect.colliderect(tile):
@@ -38,4 +48,4 @@ class Bullet:
 
 
     def render(self, canvas):
-        canvas.blit(self.image, self.rect.topleft)
+        canvas.blit(self.image, self.visual_rect.topleft)

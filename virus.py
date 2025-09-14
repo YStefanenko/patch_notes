@@ -11,8 +11,9 @@ class Virus:
             pygame.transform.scale(pygame.image.load('./assets/virus3.png').convert_alpha(), (100, 134)),
         ]
 
-        self.rect = self.costumes[1].get_bounding_rect()
+        self.rect = self.costumes[0].get_bounding_rect()
         self.rect.topleft = position
+        self.rect.size = (self.rect.size[0] * 0.5, self.rect.size[1])
 
         self.vx = 0
         self.vy = 0
@@ -63,9 +64,9 @@ class Virus:
 
     def render(self, surface):
         if self.dead:
-            surface.blit(self.costumes[0], (self.rect.topleft[0], self.rect.topleft[1] + 134 - self.costumes[0].get_height()))
+            surface.blit(self.costumes[0], (self.rect.topleft[0], self.rect.topleft[1] + 105 - self.costumes[0].get_height()))
 
         else:
             costume = self.costumes[int(self.animation_frame / 3) % 3]
-            surface.blit(costume, (self.rect.topleft[0], self.rect.topleft[1] + 134 - costume.get_height()))
+            surface.blit(costume, (self.rect.topleft[0], self.rect.topleft[1] + 105 - costume.get_height()))
             self.animation_frame += 1

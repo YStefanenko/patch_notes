@@ -2,6 +2,7 @@ import pygame
 from scene import Scene
 import random
 import time
+from sound import sound
 
 
 def print_virt_surf(screen, virt_surf):
@@ -45,6 +46,7 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+        sound.handle_event(event)
 
     scene.update(convert_mouse(pygame.mouse.get_pos()))
     scene.render(virt_surf)

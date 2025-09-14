@@ -1,6 +1,7 @@
 import pygame
 from level import Level
 from levels import levels
+from sound import sound
 
 
 class Error:
@@ -21,6 +22,8 @@ class Error:
         self.level_rect = pygame.Rect((self.position[0] + 10, self.position[1] + 65), (size[0] - 13, size[1] - 75))
 
         self.frame = 0
+
+        sound.play_sound('error')
 
 
     def update(self, mouse):

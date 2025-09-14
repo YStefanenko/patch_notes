@@ -4,7 +4,7 @@ from virus import Virus
 import random
 from bullet import Bullet
 import math
-
+from sound import sound
 
 class Level:
     def __init__(self, data):
@@ -124,7 +124,6 @@ class Level:
 
         if complete:
             self.complete_countdown = 90
-
 
 
     def render(self):

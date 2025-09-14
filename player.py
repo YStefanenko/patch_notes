@@ -1,5 +1,6 @@
 import pygame
 import math
+from sound import sound
 
 
 class Player:
@@ -25,7 +26,7 @@ class Player:
         self.vx = 0
         self.vy = 0
         self.a = 10
-        self.jump_power = -64
+        self.jump_power = -70
         self.on_ground = False
 
         self.reload = 0
@@ -49,10 +50,14 @@ class Player:
             self.vx -= self.a
             if self.vx < -30:
                 self.vx = -30
+            sound.play_sound('walk')
+
         if keys[pygame.K_d]:
             self.vx += self.a
             if self.vx > 30:
                 self.vx = 30
+            sound.play_sound('walk')
+
         self.vx = self.vx * 0.6
 
         # Apply gravity
@@ -64,6 +69,7 @@ class Player:
         if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and self.on_ground:
             self.vy = self.jump_power
             self.on_ground = False
+            sound.play_sound('jump')
 
         # Collision detection
         self.on_ground = False
@@ -119,6 +125,13 @@ class Player:
         for virus in viruses:
             if self.rect.colliderect(virus.rect):
                 self.dead = True
+                sound.play_sound('deathp')
+
+
+        if self.rect.x > 1600 or self.rect.x < 0 or self.rect.y > 900 or self.rect.y < 0:
+            self.rect.x = 100
+            self.rect.y = 700
+
 
         return 0
 
