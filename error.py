@@ -20,22 +20,24 @@ class Error:
         self.level = Level(data)
         self.level_rect = pygame.Rect((self.position[0] + 10, self.position[1] + 65), (size[0] - 13, size[1] - 75))
 
-        self.complete = False
+        self.frame = 0
 
 
     def update(self, mouse):
-        size = self.level_rect.size
-        mouse = ((mouse[0] - self.position[0] - 10) / size[0] * 1600, (mouse[1] - self.position[1] - 65) / size[1] * 900)
+        if self.frame > 60:
+            size = self.level_rect.size
+            mouse = ((mouse[0] - self.position[0] - 10) / size[0] * 1600, (mouse[1] - self.position[1] - 65) / size[1] * 900)
 
-        self.level.update(mouse)
+            self.level.update(mouse)
 
-        if self.level.complete:
-            self.complete = True
 
 
     def render(self, surface):
         surface.blit(self.background, self.position)
         surface.blit(self.title, (self.position[0] + 15, self.position[1] + 15))
 
-        game_surface = pygame.transform.scale(self.level.render(), self.level_rect.size)
-        surface.blit(game_surface, self.level_rect.topleft)
+        if self.frame > 60:
+            game_surface = pygame.transform.scale(self.level.render(), self.level_rect.size)
+            surface.blit(game_surface, self.level_rect.topleft)
+
+        self.frame += 1

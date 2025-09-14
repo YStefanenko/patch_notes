@@ -35,8 +35,13 @@ class Player:
         self.gun_rect = self.gun.get_rect(center=self.rect.center)
         self.gun_offset = (40, 25)
 
+        self.dead = False
 
-    def update(self, tiles, mouse):
+
+    def update(self, tiles, mouse, viruses):
+        if self.dead:
+            return
+
         keys = pygame.key.get_pressed()
 
         # Horizontal movement
@@ -91,7 +96,13 @@ class Player:
 
         dx, dy = mouse[0] - self.rect.centerx, mouse[1] - self.rect.centery
         angle = math.degrees(math.atan2(-dy, dx))
-        self.gun = pygame.transform.rotate(self.original_gun, angle)
+
+        if -90 < angle < 80:
+            self.gun = pygame.transform.rotate(self.original_gun, angle)
+        else:
+            self.gun = pygame.transform.flip(self.original_gun, False, True)
+            self.gun = pygame.transform.rotate(self.gun, angle)
+
         if self.vx < -2:
             self.gun_offset = (35, 25)
         else:
@@ -104,6 +115,10 @@ class Player:
             if self.reload < 1:
                 self.reload = 15
                 return 1
+
+        for virus in viruses:
+            if self.rect.colliderect(virus.rect):
+                self.dead = True
 
         return 0
 

@@ -16,14 +16,15 @@ class Scene:
             'desktop1': [
                 'Oh no! A virus just attacked the PC...',
                 'We need to fix this before it spreads!',
-                'Use WAD and SPACE to move.',
-                "Click to shoot. Don't touch the virus!",
+                'Use WAD and SPACE to move. Click...',
+                "...or R to shoot. Don't touch the virus!",
             ]
         }
         self.stage_font = pygame.font.SysFont("Comic Sans MS", 48)
 
         self.errors = []
         self.main_level = Level(levels['main'])
+        self.main_level.add_static_target((-500, -500))
 
         self.background = pygame.image.load('./assets/desktop background.png').convert()
         self.background = pygame.transform.scale(self.background, (1600, 900))
@@ -59,61 +60,58 @@ class Scene:
         self.bubble = pygame.transform.scale(self.bubble, (900, 150))
 
 
-        self.bin_background = pygame.image.load('./assets/recycle bin.png').convert()
+        self.bin_background = pygame.image.load('./assets/recycle_bin_background.png').convert()
         self.bin_background = pygame.transform.scale(self.bin_background, (1600, 900))
 
-        self.docs_background = pygame.image.load('./assets/important documents.png').convert()
+        self.docs_background = pygame.image.load('./assets/documents_background.png').convert()
         self.docs_background = pygame.transform.scale(self.docs_background, (1600, 900))
 
-        self.browser_background = pygame.image.load('./assets/web browser.png').convert()
+        self.browser_background = pygame.image.load('./assets/browser_background.png').convert()
         self.browser_background = pygame.transform.scale(self.browser_background, (1600, 900))
 
-        self.computer_background = pygame.image.load('./assets/my computer.png').convert()
+        self.computer_background = pygame.image.load('./assets/system32_background.png').convert()
         self.computer_background = pygame.transform.scale(self.computer_background, (1600, 900))
 
 
     def update(self, mouse):
-        self.frame += 1
+        if self.errors:
+            for error in self.errors:
+                error.update(mouse)
+                if error.level.complete:
+                    self.errors.remove(error)
+                if error.level.restart_countdown:
+                    for error2 in self.errors:
+                        if not error2.level.restart_countdown:
+                            error2.level.restart_countdown = 90
+
 
         if self.stage == 'intro':
             if self.frame > 300:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
-        elif self.stage == 'desktop1':
+        if self.stage == 'desktop1':
             if self.frame < 400:
                 self.main_level.update(mouse)
             elif self.frame == 400:
-                self.errors.append(Error((400, 100), (806, 498), 'File Not Found Error', levels['first']))
-            elif self.frame > 430:
-                self.errors[0].update(mouse)
-                if self.errors[0].complete:
-                    del self.errors[0]
+                self.errors.append(Error((400, 100), (806, 498), 'ERROR', levels['first']))
 
             if self.frame > 400 and not self.errors:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
-        elif self.stage == 'desktop2':
-            if self.errors:
-                for error in self.errors:
-                    error.update(mouse)
-                    if error.complete:
-                        self.errors.remove(error)
-            else:
-                self.main_level.update(mouse)
+        if self.stage == 'desktop2':
+            if self.frame == 0:
+                self.main_level = Level(levels['main'])
+                self.main_level.add_static_target((70, 330))
 
-            if self.frame == 1:
-                self.errors.append(Error((400, 100), (806, 498), 'File Not Found Error', levels['first']))
+            self.main_level.update(mouse)
 
-            if self.frame > 1 and not self.errors:
+            if self.frame > 1 and self.main_level.complete_countdown:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
         elif self.stage == 'recycle_bin':
-            for error in self.errors:
-                error.update(mouse)
-
             if self.frame == 20:
                 self.errors.append(Error((100, 100), (806, 498), "No Such File", levels['bin1']))
             elif self.frame == 100:
@@ -165,6 +163,9 @@ class Scene:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
 
+        self.frame += 1
+
+
 
 
     def render(self, surface):
@@ -197,7 +198,7 @@ class Scene:
                 for error in self.errors:
                     error.render(surface)
             else:
-                self.main_level.player.render(surface)
+                surface.blit(self.main_level.render(), (0, -66))
 
 
         if self.stage == 'desktop1':
@@ -209,24 +210,17 @@ class Scene:
 
                 surface.blit(text, rect)
 
+
+
         elif self.stage == 'recycle_bin':
             surface.blit(self.bin_background, (0, 0))
-            for error in self.errors:
-                error.render(surface)
         elif self.stage == 'important_docs':
             surface.blit(self.docs_background, (0, 0))
-            for error in self.errors:
-                error.render(surface)
         elif self.stage == 'browser':
             surface.blit(self.browser_background, (0, 0))
-            for error in self.errors:
-                error.render(surface)
         elif self.stage == 'my_computer':
             surface.blit(self.computer_background, (0, 0))
-            for error in self.errors:
-                error.render(surface)
 
 
-
-
-
+        for error in self.errors:
+            error.render(surface)
