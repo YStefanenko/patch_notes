@@ -9,7 +9,7 @@ from sound import sound
 
 class Scene:
     def __init__(self):
-        self.stage = 'intro'
+        self.stage = 'browser'
         self.stage_progression = ['intro', 'desktop1', 'desktop2', 'recycle_bin', 'desktop3', 'important_docs', 'desktop4', 'browser', 'desktop5', 'my_computer', 'system', 'win']
         self.frame = 0
 
@@ -104,6 +104,8 @@ class Scene:
         self.computer_background = pygame.image.load('./assets/system32_background.png').convert()
         self.computer_background = pygame.transform.scale(self.computer_background, (1600, 900))
 
+        self.intro = [pygame.transform.scale(pygame.image.load(f'./assets/vf{i+1}.png').convert(), (1600, 900)) for i in range(12)]
+
 
     def update(self, mouse):
         if self.errors:
@@ -121,9 +123,10 @@ class Scene:
         if self.stage == 'intro':
             if self.frame == 0:
                 sound.set_music('menu')
-            if self.frame > 300:
+            if self.frame > 238:
                 self.stage = self.stage_progression[self.stage_progression.index(self.stage) + 1]
                 self.frame = 0
+                self.intro = None
 
         if self.stage == 'desktop1':
             if self.frame < 400:
@@ -266,21 +269,7 @@ class Scene:
 
     def render(self, surface):
         if self.stage == 'intro':
-            if self.frame < 150 or (int(self.frame / 7) % 2 and self.frame < 230):
-                surface.blit(self.background, (0, 0))
-                surface.blit(self.toolbar, (0, 832))
-                surface.blit(self.computer, (25, 25))
-                surface.blit(self.bin, (30, 178))
-                surface.blit(self.browser, (40, 360))
-                surface.blit(self.docs, (30, 490))
-                surface.blit(self.time, self.time_rect)
-
-                if int(self.frame / 30) % 2 and self.frame < 150:
-                    surface.blit(self.virus, (500, 50))
-                surface.blit(self.virus_text, self.virus_text_rect)
-
-            else:
-                surface.fill('black')
+            surface.blit(self.intro[int(self.frame/20)], (0, 0))
 
         if self.stage[:-1] == 'desktop':
             surface.blit(self.background, (0, 0))

@@ -151,9 +151,16 @@ class Player:
 
         else:
             if self.on_ground:
-                costume = self.costumes[0]
+                if self.vx < 0:
+                    costume = self.costumes[1]
+                else:
+                    costume = self.costumes[0]
             else:
-                costume = self.costumes[2]
+                if self.vx < 0:
+                    costume = self.costumes[3]
+                else:
+                    costume = self.costumes[2]
+
 
         canvas.blit(costume, self.rect.topleft)
 
